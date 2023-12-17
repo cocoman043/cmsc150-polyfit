@@ -51,9 +51,9 @@ quadratic_spline_interpolation <- function(data) {
     
     # Fill in the third term
     if (i != num_intervals){
-      table[3*i, 3*i - 2] <- 2*x[i]
+      table[3*i, 3*i - 2] <- 2*x[i+1]
       table[3*i, 3*i - 1] <- 1
-      table[3*i, 3*i + 1] <- -2*x[i + 1]
+      table[3*i, 3*i + 1] <- -2*x[i+1]
       table[3*i, 3*i + 2] <- -1    
     }
     
@@ -64,6 +64,19 @@ quadratic_spline_interpolation <- function(data) {
   
   table[3*num_intervals, 1] <- 1
   
-  print(table)
-  return(table)
+  coeeficients <- solve(table[,1:(3*num_intervals)], table[,3*num_intervals + 1])
+  
+  functions <- list()
+  for (i in 1:num_intervals) {
+    functions[[i]] <- function(x) {
+      coeeficients[3*i - 2]*x^2 + coeeficients[3*i - 1]*x + coeeficients[3*i]
+    }
+  }
+  
+  function_strings <- list()
+  for (i in 1:num_intervals) {
+    function_strings[[i]] <- paste0("f(x) = ", coeeficients[3*i - 2], "*x^2 + ", coeeficients[3*i - 1], "*x + ", coeeficients[3*i])
+  }
+  
+  return(list(functions = functions, function_strings = function_strings))
 }
