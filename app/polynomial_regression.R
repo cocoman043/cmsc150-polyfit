@@ -1,33 +1,54 @@
-polynomial_regression <- function(
-    x,
-    y,
-    degree = 1
-){
-    # If degree is greater than size of x, return an error
-    if(degree > length(x)){
-        stop("Degree must be less than or equal to the number of data points.")
+coeffs_to_polynomial <- function(coeffs) {
+  degree <- length(coeffs) - 1
+  terms <- character(length = length(coeffs))
+  
+  for (i in 0:degree) {
+    if (i == 0) {
+      terms[i + 1] <- sprintf("%s", coeffs[i + 1])
+    } else {
+      terms[i + 1] <- sprintf("%s * x^%s", coeffs[i + 1], i)
     }
-    # Fit a polynomial regression model
-    fit <- lm(y ~ poly(x, degree, raw = TRUE))
-    
-    # Plot the data and the model
-    plot(x, y, pch = 16, col = "black")
-    lines(x, predict(fit), col = "red", lwd = 2)
-    
-    coefficients <- round(coef(fit), 2)
-    
-    # Create a string that will be used to display the regression equation
-    regression_string <- paste("f(x) = ", paste(coefficients[-1], "*", paste0("x^", 1:degree), collapse = " + "), "+", coefficients[1])
-    
-    # Create a function that will return the predicted values
-    fxn <- function(x){
-        coefficients[1] + sum(sapply(1:degree, function(i) coefficients[i + 1] * x^i))
-    }
-    
-    # Return the regression function and the regression string
-    return(list(fxn = fxn, regression_string = regression_string))
+  }
+  
+  polynomial_str <- paste(terms, collapse = " + ")
+  result <- sprintf("function(x) %s", polynomial_str)
+  
+  return(result)
 }
 
-# Sample data
-x <- c(1, 2, 3, 4, 5)
-y <- c(1, 4, 9, 16, 25)
+PolynomialRegression <- function(order, data) {
+  # initialize zero matrix
+  system <- matrix(0, nrow = order + 1, ncol = order + 2)
+  
+  # insert values for LHS
+  for (i in 1:(order + 1)) {
+    for (j in 1:(order + 1)) {
+      sum <- 0
+      for (k in data[,1]) {
+        sum <- sum + (k ^ (j - 2 + i))
+      }
+      
+      system[i, j] <- sum
+    }
+  }
+  
+  # insert values for RHS
+  for (i in 1:(order + 1)) {
+    sum <- 0
+    for (j in 1:length(data[,1])) {
+      sum <- sum + (data[j,1] ^ (i - 1) * data[j,2])
+    }
+    
+    system[i, order + 2] <- sum
+  }
+  
+  augcoeffmatrix <- system
+  coefficients <- (GaussJordanMethod(system)$solution)
+  polynomial_string <- coeffs_to_polynomial(coefficients)
+  polynomial_function <- eval(parse(text=polynomial_string))
+  
+  return(list("augcoeffmatrix"=augcoeffmatrix,
+              "coefficients"=coefficients,
+              "polynomial_string"=polynomial_string,
+              "polynomial_function"=polynomial_function))
+}

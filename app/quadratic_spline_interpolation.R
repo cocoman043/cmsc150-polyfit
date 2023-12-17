@@ -1,32 +1,78 @@
-quadratic_spline_interpolation <- function(x, y, xout) {
-  # x: x values of data points
-  # y: y values of data points
-  # xout: x values of output points
-  # returns: y values of output points
-  n <- length(x)
-  if (n != length(y)) {
-    stop("x and y must be the same length")
+quadratic_spline_interpolation <- function(data) {
+  x <- data[,1]
+  y <- data[,2]
+  # x: vector of x values
+  # y: vector of y values
+  
+  # Check if x and y are of the same length
+  if (length(x) != length(y)) {
+    stop("x and y must be of the same length")
   }
-  if (n < 3) {
-    stop("need at least 3 data points")
+  
+  # Check if x is sorted
+  if (!is.unsorted(x)) {
+    stop("x must be sorted")
   }
-  if (any(diff(x) <= 0)) {
-    stop("x must be strictly increasing")
+  
+  # Check if x is unique
+  if (!is.unique(x)) {
+    stop("x must be unique")
   }
-  if (any(diff(xout) <= 0)) {
-    stop("xout must be strictly increasing")
+  
+  # Check if x and y are numeric
+  if (!is.numeric(x) || !is.numeric(y)) {
+    stop("x and y must be numeric")
   }
-  # compute slopes
-  m <- diff(y) / diff(x)
-  # compute quadratic coefficients
-  a <- rep(0, n)
-  a[2:n] <- (m[2:n] - m[1:(n - 1)]) / (2 * diff(x))
-  b <- m - a * diff(x)
-  # compute output values
-  yout <- rep(0, length(xout))
-  for (i in 1:length(xout)) {
-    j <- max(which(x <= xout[i]))
-    yout[i] <- a[j] * (xout[i] - x[j]) ^ 2 + b[j] * (xout[i] - x[j]) + y[j]
+  
+  # Check if x and y are of length at least 3
+  if (length(x) < 3) {
+    stop("x and y must be of length at least 3")
   }
-  return(yout)
+  
+  table <- matrix(0, nrow = 3*(length(x)), ncol = 3*(length(x)+1))
+  for (i in 1:(length(x)-1)) {
+    table[3*i-2, 3*i-2] <- x[i]^2
+    table[3*i-2, 3*i-1] <- x[i]
+    table[3*i-2, 3*i] <- 1
+  }
+    
+}
+quadratic_spline_functions <- function(x, y) {
+  n <- length(x) - 1
+  h <- diff(x)
+  alpha <- diff(y) / h
+  beta <- alpha[2:n] - alpha[1:(n-1)]
+  gamma <- beta[2:(n-1)] - beta[1:(n-2)]
+  
+  # Create a list to store the functions
+  spline_functions <- list()
+  
+  for (i in 1:n) {
+    a_i <- y[i]
+    b_i <- alpha[i]
+    c_i <- beta[i] / 2
+    d_i <- gamma[i] / (6 * h[i])
+    
+    # Define the quadratic spline function for the i-th interval
+    spline_functions[[i]] <- function(t, a = a_i, b = b_i, c = c_i, d = d_i, x0 = x[i]) {
+      u <- (t - x0) / h[i]
+      return(a + b * u + c * u^2 + d * u^3)
+    }
+  }
+  
+  return(spline_functions)
+}
+
+# Example usage:
+x <- c(1, 2, 3, 4, 5)
+y <- c(3, 8, 4, 1, 7)
+
+spline_functions_list <- quadratic_spline_functions(x, y)
+
+# Evaluate and plot the individual basis functions
+curve(spline_functions_list[[1]](x), from = min(x), to = max(x), col = "red", type = "l", lty = 2,
+      main = "Quadratic Spline Basis Functions")
+
+for (i in 2:length(spline_functions_list)) {
+  lines(spline_functions_list[[i]](x), col = "red", lty = 2)
 }
