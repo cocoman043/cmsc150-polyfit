@@ -62,5 +62,8 @@ quadratic_spline_interpolation <- function(data) {
     table[3*i - 1, 3*num_intervals + 1] <- y[i + 1]
   }
   
+  table[3*num_intervals, 1] <- 1
+  
   print(table)
+  return(table)
 }
