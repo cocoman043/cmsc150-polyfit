@@ -14,17 +14,18 @@ table <- table[sample_list,]
 # 50 Vitamin C 20000
 # 800 Calcium 1600
 # 10 Iron 30
+# Max Serving per food, 10
 
 RHS <- c(2000, 2250, 0, 300, 0, 65, 0, 2400, 0, 300, 25, 100, 50, 100, 5000, 50000, 50, 20000, 800, 1600, 10, 30)
 # nrow = number of constraints + objective function
 # ncol = slack variables (1 per constraint) + variables + RHS
-NUM_CONSTRAINTS <- 22
 NUM_FOODS <- nrow(table)
+NUM_CONSTRAINTS <- 22 + NUM_FOODS
 tableu <- matrix(0, nrow = NUM_CONSTRAINTS + 1, ncol = NUM_FOODS + 1)
 
 # Setting up Constraints Matrix
 
-for (i in 1:NUM_CONSTRAINTS) {
+for (i in 1:22) {
   # Fill in coefficients of food types
   for (j in 1:NUM_FOODS) {
     tableu[i,j] <- table[j,(i+1)/2 + 3]
@@ -34,14 +35,21 @@ for (i in 1:NUM_CONSTRAINTS) {
   tableu[i,ncol(tableu)] <- RHS[i] 
   
   if (i %% 2 == 0) {
-    # Negate minimum constraints
+    # Negate maximization constraints
     tableu[i,] <- -tableu[i,]
   }
 }
 
+# Fill in serving constraints
+# 10 servings max per food
+for (i in 1:NUM_FOODS) {
+  tableu[22 + i, i] <- -1
+  tableu[22 + i, ncol(tableu)] <- -10
+}
+
 # Fill in the objective function
 for (i in 1:NUM_FOODS) {
-  tableu[NUM_CONSTRAINTS + 1,i] <- table[i,2]
+  tableu[nrow(tableu),i] <- table[i,2]
 }
 
 tableu <- t(tableu)
@@ -110,3 +118,15 @@ simplex_method <- function(tableu){
 }
 
 min_tableu <- simplex_method(min_tableu)
+servings <- round(min_tableu[nrow(min_tableu),(ncol(min_tableu) - NUM_FOODS - 1):ncol(min_tableu)],2)
+
+# Remove useless information
+servings[length(servings) - 1] <- servings[length(servings)]
+servings <- servings[1:(length(servings) - 2)]
+
+result <- matrix(c(table$Food, servings), nrow = NUM_FOODS)
+cost_per_food <- round(table$Price * servings[1:NUM_FOODS], 2)
+# Paste cost column to result
+result <- cbind(result, cost_per_food)
+result <- rbind(result, c("Total", sum(servings), sum(cost_per_food)))
+
