@@ -129,4 +129,3 @@ cost_per_food <- round(table$Price * servings[1:NUM_FOODS], 2)
 # Paste cost column to result
 result <- cbind(result, cost_per_food)
 result <- rbind(result, c("Total", sum(servings), sum(cost_per_food)))
-
