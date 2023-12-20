@@ -113,6 +113,7 @@ ui <- fluidPage(
                                              selected = "Vegetarian"),
                         ),
                         mainPanel(
+                          tableOutput("nutrition_result"),
                         )
                       )
              )
@@ -213,6 +214,19 @@ server <- function(input, output) {
     
   })
   
+  output$nutrition_result <- renderTable({
+    tryCatch(
+      {
+        result <- optimize(input$choices);
+      },
+      error = function(e) {
+        # return a safeError if a parsing error occurs
+        stop(safeError(e))
+      }
+    )
+
+    return(result)
+  })
 }
 
 # Run the application 
