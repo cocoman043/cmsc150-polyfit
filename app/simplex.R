@@ -1,7 +1,7 @@
 table <- read.csv("food.csv")
 optimize <- function(sample_list) {
   
-  sample_list <- c(21, 11, 12, 22, 29, 48, 44, 56, 38, 52, 58, 4, 6, 23, 28, 36, 5, 61, 62, 35)
+  # sample_list <- c(21, 11, 12, 22, 29, 48, 44, 56, 38, 52, 58, 4, 6, 23, 28, 36, 5, 61, 62, 35)
   table <- table[sample_list,]
   # MINIMUM NUTRIENT MAXIMUM
   # 2000 Calories 2250
