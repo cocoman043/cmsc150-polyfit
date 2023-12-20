@@ -10,6 +10,7 @@
 library(shiny)
 source("polynomial_regression.R")
 source("quadratic_spline_interpolation.R")
+source("systemsolver.r")
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -29,18 +30,20 @@ ui <- fluidPage(
                                sidebarLayout(
                                  sidebarPanel(
                                    titlePanel("Polynomial Regression"),
-                                   fileInput("file1", "Choose CSV File",
+                                   fileInput("poly_reg_file", "Choose CSV File",
                                              multiple = FALSE,
                                              accept = c("text/csv",
                                                         "text/comma-separated-values,text/plain",
                                                         ".csv")),
                                    numericInput("degree", "Degree of polynomial:", 1, min = 1, max = 10),
                                    numericInput("target", "x to estimate:", 1),
-                                   actionButton("submit", "Submit")
+                                   submitButton("Submit")
                                  ),
                                  mainPanel(
-                                   tableOutput("contents"),
+                                   tableOutput("poly_reg_result"),
                                    verbatimTextOutput("result"),
+                                   verbatimTextOutput("poly_reg_function_string"),
+                                   verbatimTextOutput("poly_reg_estimate")
                                  )
                                )
                       ),
@@ -48,17 +51,15 @@ ui <- fluidPage(
                                sidebarLayout(
                                  sidebarPanel(
                                    titlePanel("Quadratic Spline Interpolation"),
-                                   fileInput("file1", "Choose CSV File",
+                                   fileInput("qsi_file", "Choose CSV File",
                                              multiple = FALSE,
                                              accept = c("text/csv",
                                                         "text/comma-separated-values,text/plain",
                                                         ".csv")),
                                    numericInput("target", "x to estimate:", 1),
-                                   actionButton("submit", "Submit")
+                                   submitButton("Submit")
                                  ),
                                  mainPanel(
-                                   tableOutput("contents"),
-                                   verbatimTextOutput("result"),
                                  )
                                )
                       )
@@ -110,8 +111,6 @@ ui <- fluidPage(
                                              selected = "Vegetarian"),
                         ),
                         mainPanel(
-                          tableOutput("contents"),
-                          verbatimTextOutput("result"),
                         )
                       )
              )
@@ -120,26 +119,51 @@ ui <- fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-  output$contents <- renderTable({
-    
-    req(input$file1)
-    
-    # when reading semicolon separated files,
-    # having a comma separator causes `read.csv` to error
+  output$poly_reg_result <- renderTable({
     tryCatch(
       {
-        df <- read.csv(input$file1$datapath)
+        df <- read.csv(input$poly_reg_file$datapath)
+        result <- PolynomialRegression(input$degree,df);
       },
       error = function(e) {
         # return a safeError if a parsing error occurs
         stop(safeError(e))
       }
     )
-    
+
     return(df)
   })
   
-  output$result <- renderPrint("Nothing to show yet.")
+  output$poly_reg_function_string <- renderText({
+    tryCatch(
+      {
+        df <- read.csv(input$poly_reg_file$datapath)
+        result <- PolynomialRegression(input$degree,df);
+      },
+      error = function(e) {
+        # return a safeError if a parsing error occurs
+        stop(safeError(e))
+      }
+    )
+
+    return(result$polynomial_string)
+  })
+  
+  output$poly_reg_estimate <- renderText({
+    tryCatch(
+      {
+        df <- read.csv(input$poly_reg_file$datapath)
+        result <- PolynomialRegression(input$degree,df);
+      },
+      error = function(e) {
+        # return a safeError if a parsing error occurs
+        stop(safeError(e))
+      }
+    )
+
+    return(result$polynomial_function(input$target))
+  })
+  
 }
 
 # Run the application 
