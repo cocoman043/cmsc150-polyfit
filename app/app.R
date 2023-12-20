@@ -13,51 +13,133 @@ source("quadratic_spline_interpolation.R")
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
-  
-  navbarPage("Navbar!",
-             tabPanel("Plot",
-                      sidebarLayout(
-                        sidebarPanel(
-                          radioButtons("plotType", "Plot type",
-                                       c("Scatter"="p", "Line"="l")
-                          )
-                        ),
-                        mainPanel(
-                          plotOutput("plot")
-                        )
+  titlePanel("Fitness"),
+  navbarPage("",
+             tabPanel("User Manual",
+                      mainPanel(
+                        h2("Welcome to the Fitness app!"),
+                        p("This is a user manual for the Shiny app. The app is divided into 4 tabs, each of which is a different tool."),
+                        p("The first tab is the user manual. It is a simple tab that contains this user manual."),
+                        p("The second tab is the curve fitting tab. It contains two tools: polynomial regression and quadratic spline interpolation."),
+                        p("The third tab is the nutrition optimizer tab. It contains a tool that optimizes the nutrition of a diet."),
                       )
              ),
-             tabPanel("Summary",
-                      verbatimTextOutput("summary")
-             ),
-             navbarMenu("More",
-                        tabPanel("Table",
-                        ),
-                        tabPanel("About",
-                                 fluidRow(
-                                   column(6,
-                                   ),
-                                   column(3,
-                                          img(class="img-polaroid",
-                                              src=paste0("http://upload.wikimedia.org/",
-                                                         "wikipedia/commons/9/92/",
-                                                         "1919_Ford_Model_T_Highboy_Coupe.jpg")),
-                                          tags$small(
-                                            "Source: Photographed at the Bay State Antique ",
-                                            "Automobile Club's July 10, 2005 show at the ",
-                                            "Endicott Estate in Dedham, MA by ",
-                                            a(href="http://commons.wikimedia.org/wiki/User:Sfoskett",
-                                              "User:Sfoskett")
-                                          )
-                                   )
+             navbarMenu("Curve Fitting",
+                      tabPanel("Polynomial Regression",
+                               sidebarLayout(
+                                 sidebarPanel(
+                                   titlePanel("Polynomial Regression"),
+                                   fileInput("file1", "Choose CSV File",
+                                             multiple = FALSE,
+                                             accept = c("text/csv",
+                                                        "text/comma-separated-values,text/plain",
+                                                        ".csv")),
+                                   numericInput("degree", "Degree of polynomial:", 1, min = 1, max = 10),
+                                   numericInput("target", "x to estimate:", 1),
+                                   actionButton("submit", "Submit")
+                                 ),
+                                 mainPanel(
+                                   tableOutput("contents"),
+                                   verbatimTextOutput("result"),
                                  )
+                               )
+                      ),
+                      tabPanel("Quadratic Spline Interpolation",
+                               sidebarLayout(
+                                 sidebarPanel(
+                                   titlePanel("Quadratic Spline Interpolation"),
+                                   fileInput("file1", "Choose CSV File",
+                                             multiple = FALSE,
+                                             accept = c("text/csv",
+                                                        "text/comma-separated-values,text/plain",
+                                                        ".csv")),
+                                   numericInput("target", "x to estimate:", 1),
+                                   actionButton("submit", "Submit")
+                                 ),
+                                 mainPanel(
+                                   tableOutput("contents"),
+                                   verbatimTextOutput("result"),
+                                 )
+                               )
+                      )
+             ),
+             tabPanel("Nutrition Optimizer",
+                      sidebarLayout(
+                        sidebarPanel(
+                          checkboxGroupInput("diet", "Choose diet:",
+                                             choices = list("Vegetarian" = "Vegetarian",
+                                                            "Vegan" = "Vegan",
+                                                            "Keto" = "Keto",
+                                                            "Paleo" = "Paleo",
+                                                            "Mediterranean" = "Mediterranean",
+                                                            "Atkins" = "Atkins",
+                                                            "Zone" = "Zone",
+                                                            "Raw" = "Raw",
+                                                            "Dukan" = "Dukan",
+                                                            "Ultra-low-fat" = "Ultra-low-fat",
+                                                            "HCG" = "HCG",
+                                                            "Alkaline" = "Alkaline",
+                                                            "Weight Watchers" = "Weight Watchers",
+                                                            "South Beach" = "South Beach",
+                                                            "MIND" = "MIND",
+                                                            "TLC" = "TLC",
+                                                            "Flat Belly" = "Flat Belly",
+                                                            "Fertility" = "Fertility",
+                                                            "Mayo Clinic" = "Mayo Clinic",
+                                                            "Ornish" = "Ornish",
+                                                            "Biggest Loser" = "Biggest Loser",
+                                                            "Jenny Craig" = "Jenny Craig",
+                                                            "Nutrisystem" = "Nutrisystem",
+                                                            "Volumetrics" = "Volumetrics",
+                                                            "Abs" = "Abs",
+                                                            "Bodybuilding" = "Bodybuilding",
+                                                            "DASH" = "DASH",
+                                                            "Engine 2" = "Engine 2",
+                                                            "Fast" = "Fast",
+                                                            "Flexitarian" = "Flexitarian",
+                                                            "HMR" = "HMR",
+                                                            "Master Cleanse" = "Master Cleanse",
+                                                            "Medifast" = "Medifast",
+                                                            "Optavia" = "Optavia",
+                                                            "Spark Solution" = "Spark Solution",
+                                                            "Supercharged Hormone" = "Supercharged Hormone",
+                                                            "TLC" = "TLC",
+                                                            "Whole30" = "Whole30",
+                                                            "WW" = "WW",
+                                                            "Zone" = "Zone"),
+                                             selected = "Vegetarian"),
+                        ),
+                        mainPanel(
+                          tableOutput("contents"),
+                          verbatimTextOutput("result"),
                         )
+                      )
              )
   )
 )
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
+  output$contents <- renderTable({
+    
+    req(input$file1)
+    
+    # when reading semicolon separated files,
+    # having a comma separator causes `read.csv` to error
+    tryCatch(
+      {
+        df <- read.csv(input$file1$datapath)
+      },
+      error = function(e) {
+        # return a safeError if a parsing error occurs
+        stop(safeError(e))
+      }
+    )
+    
+    return(df)
+  })
+  
+  output$result <- renderPrint("Nothing to show yet.")
 }
 
 # Run the application 
