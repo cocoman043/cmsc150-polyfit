@@ -60,6 +60,8 @@ ui <- fluidPage(
                                    submitButton("Submit")
                                  ),
                                  mainPanel(
+                                   tableOutput("qsi_result"),
+                                   verbatimTextOutput("qsi_function_string"),
                                  )
                                )
                       )
@@ -162,6 +164,53 @@ server <- function(input, output) {
     )
 
     return(result$polynomial_function(input$target))
+  })
+  
+  output$qsi_result <- renderTable({
+    tryCatch(
+      {
+        df <- read.csv(input$qsi_file$datapath)
+        result <- quadratic_spline_interpolation(df);
+      },
+      error = function(e) {
+        # return a safeError if a parsing error occurs
+        stop(safeError(e))
+      }
+    )
+
+    return(df)
+  })
+  
+  output$qsi_function_string <- renderPrint({
+    tryCatch(
+      {
+        df <- read.csv(input$qsi_file$datapath)
+        result <- quadratic_spline_interpolation(df);
+      },
+      error = function(e) {
+        # return a safeError if a parsing error occurs
+        stop(safeError(e))
+      }
+    )
+
+    return(result$function_strings)
+  })
+  
+  output$qsi_estimate <- renderText({
+    tryCatch(
+      {
+        df <- read.csv(input$qsi_file$datapath)
+        result <- quadratic_spline_interpolation(df);
+      },
+      error = function(e) {
+        # return a safeError if a parsing error occurs
+        stop(safeError(e))
+      }
+    )
+
+    # TODO
+    return(result$function_strings)
+    
   })
   
 }
