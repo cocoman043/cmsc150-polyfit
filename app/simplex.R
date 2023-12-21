@@ -69,7 +69,9 @@ optimize <- function(sample_list) {
   # Solve for Simplex of min_tableu
   
   
-  min_tableu <- simplex_method(min_tableu)
+  simplex_result <- simplex_method(min_tableu)
+  min_tableu <- simplex_result$min_tableu
+  solutions <- simplex_result$basic_solutions
   servings <- round(min_tableu[nrow(min_tableu),(ncol(min_tableu) - NUM_FOODS - 1):ncol(min_tableu)],2)
   
   # Remove useless information
@@ -81,7 +83,8 @@ optimize <- function(sample_list) {
   # Paste cost column to result
   result <- cbind(result, cost_per_food)
   result <- rbind(result, c("Total", sum(servings), sum(cost_per_food)))
-  return(result)
+  colnames(result) <- c("Food", "Servings", "Cost")
+  return(list(result = result, solutions = solutions))
   
 }
 
@@ -108,7 +111,7 @@ simplex_method <- function(min_tableu){
     if (is.infinite(min(test_ratios))){
       print("No pivot row found.")
       print("Infeasible.")
-      break
+      stop("Infeasible.")
     }
     
     
@@ -122,15 +125,26 @@ simplex_method <- function(min_tableu){
       }
     }
     
+    basic_solutions <- list()
+    # Append current iteration's basic solution to a list
+    for (i in 1:nrow(min_tableu)) {
+      basic_solutions[[i]] <- min_tableu[nrow(min_tableu),1:ncol(min_tableu)]
+    }
+    
+    
     iterations <- iterations + 1
     if (iterations == MAX_ITERATIONS) {
       print(min_tableu)
       print("Maximum number of iterations reached.")
       if (min(min_tableu[nrow(min_tableu),]) < 0) {
         print("Infeasible.")
+        stop("Infeasible.")
       }
     }
   }
   
-  return(min_tableu)
+  print(basic_solutions)
+  return(list(min_tableu = min_tableu,
+              basic_solutions = basic_solutions
+  ))
 }
