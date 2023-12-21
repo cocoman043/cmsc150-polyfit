@@ -102,7 +102,7 @@ server <- function(input, output) {
   output$poly_reg_result <- renderTable({
     tryCatch(
       {
-        df <- read.csv(input$poly_reg_file$datapath)
+        df <- read.csv(input$poly_reg_file$datapath, header = FALSE)
         result <- PolynomialRegression(input$degree,df);
       },
       error = function(e) {
@@ -117,7 +117,7 @@ server <- function(input, output) {
   output$poly_reg_function_string <- renderText({
     tryCatch(
       {
-        df <- read.csv(input$poly_reg_file$datapath)
+        df <- read.csv(input$poly_reg_file$datapath, header = FALSE)
         result <- PolynomialRegression(input$degree,df);
       },
       error = function(e) {
@@ -132,7 +132,7 @@ server <- function(input, output) {
   output$poly_reg_estimate <- renderText({
     tryCatch(
       {
-        df <- read.csv(input$poly_reg_file$datapath)
+        df <- read.csv(input$poly_reg_file$datapath, header = FALSE)
         result <- PolynomialRegression(input$degree,df);
       },
       error = function(e) {
@@ -147,7 +147,7 @@ server <- function(input, output) {
   output$qsi_result <- renderTable({
     tryCatch(
       {
-        df <- read.csv(input$qsi_file$datapath)
+        df <- read.csv(input$qsi_file$datapath, header = FALSE)
         result <- quadratic_spline_interpolation(df);
       },
       error = function(e) {
@@ -162,7 +162,7 @@ server <- function(input, output) {
   output$qsi_function_string <- renderPrint({
     tryCatch(
       {
-        df <- read.csv(input$qsi_file$datapath)
+        df <- read.csv(input$qsi_file$datapath, header = FALSE)
         result <- quadratic_spline_interpolation(df);
       },
       error = function(e) {
@@ -178,7 +178,7 @@ server <- function(input, output) {
     tryCatch(
       {
         index <- 1
-        df <- read.csv(input$qsi_file$datapath)
+        df <- read.csv(input$qsi_file$datapath, header = FALSE)
         while(input$qsi_target > df[index,1]){
           index <- index + 1
         }

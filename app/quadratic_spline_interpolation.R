@@ -1,8 +1,6 @@
 quadratic_spline_interpolation <- function(data) {
   x <- data[,1]
   y <- data[,2]
-  # x: vector of x values
-  # y: vector of y values
   
   # Check if x and y are of the same length
   if (length(x) != length(y)) {
