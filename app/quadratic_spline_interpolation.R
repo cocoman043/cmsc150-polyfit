@@ -62,7 +62,8 @@ quadratic_spline_interpolation <- function(data) {
   
   table[3*num_intervals, 1] <- 1
   
-  coeeficients <- solve(table[,1:(3*num_intervals)], table[,3*num_intervals + 1])
+  coeeficients <- GaussJordanMethod(table)$solution
+  # coeeficients <- solve(table[,1:(3*num_intervals)], table[,3*num_intervals + 1])
   
   function_strings <- list()
   for (i in 1:num_intervals) {

@@ -171,6 +171,9 @@ server <- function(input, output, session) {
     tryCatch(
       {
         df <- read.csv(input$poly_reg_file$datapath, header = FALSE)
+        if (input$degree > nrow(df)-1) {
+          stop("Degree of polynomial is too high.")
+        }
         result <- PolynomialRegression(input$degree,df);
       },
       error = function(e) {
@@ -189,7 +192,7 @@ server <- function(input, output, session) {
         if (input$poly_reg_target < min(df$V1) || input$poly_reg_target > max(df$V1)) {
           stop("Target value is out of range.")
         }
-        if (input$degree > nrow(df)) {
+        if (input$degree > nrow(df)-1) {
           stop("Degree of polynomial is too high.")
         }
         result <- PolynomialRegression(input$degree,df);
