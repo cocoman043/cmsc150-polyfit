@@ -11,6 +11,7 @@ library(shiny)
 source("polynomial_regression.R")
 source("quadratic_spline_interpolation.R")
 source("systemsolver.r")
+source("simplex.R")
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -36,7 +37,7 @@ ui <- fluidPage(
                                                         "text/comma-separated-values,text/plain",
                                                         ".csv")),
                                    numericInput("degree", "Degree of polynomial:", 1, min = 1, max = 10),
-                                   numericInput("target", "x to estimate:", 1),
+                                   numericInput("poly_reg_target", "x to estimate:", 1),
                                    submitButton("Submit")
                                  ),
                                  mainPanel(
@@ -56,12 +57,13 @@ ui <- fluidPage(
                                              accept = c("text/csv",
                                                         "text/comma-separated-values,text/plain",
                                                         ".csv")),
-                                   numericInput("target", "x to estimate:", 1),
+                                   numericInput("qsi_target", "x to estimate:", 1),
                                    submitButton("Submit")
                                  ),
                                  mainPanel(
                                    tableOutput("qsi_result"),
                                    verbatimTextOutput("qsi_function_string"),
+                                   verbatimTextOutput("qsi_estimate"),
                                  )
                                )
                       )
@@ -74,6 +76,8 @@ ui <- fluidPage(
                                              choiceValues = as.character(1:64),
                           ),
                           submitButton("Submit"),
+                          actionButton("select_all", "Select All"),
+                          actionButton("clear_all", "Clear All"),
                         ),
                         mainPanel(
                           tableOutput("nutrition_result"),
@@ -85,6 +89,16 @@ ui <- fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
+  
+  observe({
+    if(input$select_all > 0) {
+      updateCheckboxGroupInput(session, "choices", "Choose foods:", choiceNames = table$Food, choiceValues = as.character(1:64), selected = table$Food)
+    }
+    if(input$clear_all > 0) {
+      updateCheckboxGroupInput(session, "choices", "Choose foods:", choiceNames = table$Food, choiceValues = as.character(1:64))
+    }
+  })
+  
   output$poly_reg_result <- renderTable({
     tryCatch(
       {
@@ -127,7 +141,7 @@ server <- function(input, output) {
       }
     )
 
-    return(result$polynomial_function(input$target))
+    return(result$polynomial_function(input$poly_reg_target))
   })
   
   output$qsi_result <- renderTable({
@@ -163,18 +177,19 @@ server <- function(input, output) {
   output$qsi_estimate <- renderText({
     tryCatch(
       {
+        index <- 1
         df <- read.csv(input$qsi_file$datapath)
-        result <- quadratic_spline_interpolation(df);
+        while(input$qsi_target > df[index,1]){
+          index <- index + 1
+        }
+        estimate <- quadratic_spline_interpolation(df)$functions[[index-1]](input$qsi_target);
+        return(estimate)
       },
       error = function(e) {
         # return a safeError if a parsing error occurs
         stop(safeError(e))
       }
     )
-
-    # TODO
-    return(result$function_strings)
-    
   })
   
   output$nutrition_result <- renderTable({
